@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Volto — Find EV charging, fast</title>
+<meta name="description" content="Volto shows EV charging stations around you on a clean, smart map. No account, privacy-first." />
+<style>
+:root{--green:#3DDC84;--green-2:#2bbf6e;--bg:#0d1311;--bg-2:#141c19;--card:#182320;--text:#eaf2ee;--muted:#9fb1a9;--border:#243430;--radius:16px}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--green);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1000px;margin:0 auto;padding:0 22px}
+header.site{position:sticky;top:0;z-index:20;background:rgba(13,19,17,.82);backdrop-filter:saturate(160%) blur(14px);border-bottom:1px solid var(--border)}
+.nav{display:flex;align-items:center;gap:16px;height:64px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;cursor:pointer}
+.brand .bolt{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:linear-gradient(135deg,var(--green),var(--green-2));color:#08130d;font-weight:900}
+.nav .links{margin-left:auto;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.nav .links a{color:var(--muted);font-weight:600;font-size:15px;cursor:pointer}
+.nav .links a:hover,.nav .links a.active{color:var(--text);text-decoration:none}
+#lang-switcher{display:flex;gap:4px;flex-wrap:wrap}
+.lang-btn{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:999px;padding:4px 9px;font-size:12px;font-weight:700;cursor:pointer;text-transform:uppercase}
+.lang-btn.active{background:var(--green);color:#08130d;border-color:var(--green)}
+.view{display:none}.view.active{display:block}
+.hero{padding:70px 0 40px;text-align:center}
+.hero h1{font-size:clamp(34px,6vw,60px);line-height:1.05;font-weight:850;letter-spacing:-.5px}
+.hero h1 .accent{color:var(--green)}
+.hero p.sub{color:var(--muted);font-size:clamp(17px,2.4vw,21px);max-width:620px;margin:18px auto 0}
+.cta{margin-top:28px}
+.badge{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--green),var(--green-2));color:#08130d;font-weight:800;padding:13px 22px;border-radius:14px;font-size:16px}
+.badge small{display:block;font-size:11px;font-weight:700;opacity:.8}
+.shots{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;padding:30px 0 10px}
+.shots img{width:230px;max-width:60vw;border-radius:26px;border:1px solid var(--border);box-shadow:0 20px 50px rgba(0,0,0,.45)}
+section.block{padding:56px 0;border-top:1px solid var(--border)}
+section.block h2{font-size:clamp(24px,4vw,34px);font-weight:800;text-align:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin-top:34px}
+.feat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px}
+.feat .ic{font-size:24px}.feat h3{margin:12px 0 6px;font-size:18px}.feat p{color:var(--muted);font-size:15px}
+.article{padding:48px 0 70px;max-width:760px}
+.article h1{font-size:clamp(28px,5vw,40px);font-weight:850}
+.article .updated{color:var(--muted);font-size:14px;margin-top:6px}
+.article h2{font-size:21px;margin:34px 0 8px}
+.article p,.article li{color:#cdd9d3;font-size:16px}
+.article ul{margin:8px 0 8px 22px}
+.article .lead{font-size:18px;color:var(--text);margin-top:18px}
+.faq{margin-top:26px}
+.faq details{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:4px 16px;margin-bottom:12px}
+.faq summary{cursor:pointer;font-weight:700;padding:12px 0;list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::before{content:"＋";color:var(--green);font-weight:800;margin-right:10px}
+.faq details[open] summary::before{content:"－"}
+.faq p{padding:0 0 14px}
+.callout{background:var(--bg-2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-top:18px}
+footer.site{border-top:1px solid var(--border);padding:30px 0;color:var(--muted);font-size:14px}
+footer.site .row{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+footer.site .links{margin-left:auto;display:flex;gap:18px}
+</style>
+</head>
+<body>
+<header class="site">
+  <div class="wrap nav">
+    <span class="brand" data-go="home"><span class="bolt">⚡</span> Volto</span>
+    <div class="links">
+      <a data-go="home" data-i18n="nav_home">Home</a>
+      <a data-go="privacy" data-i18n="nav_privacy">Privacy</a>
+      <a data-go="terms" data-i18n="nav_terms">Terms</a>
+      <a data-go="support" data-i18n="nav_support">Support</a>
+      <span id="lang-switcher"></span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- HOME -->
+  <section class="view active" id="view-home">
+    <div class="wrap hero">
+      <h1 data-i18n="hero_h1">Find EV charging, <span class="accent">fast.</span></h1>
+      <p class="sub" data-i18n="hero_sub"></p>
+      <div class="cta"><span class="badge">⚡ <span><span data-i18n="cta_main">App Store</span><small data-i18n="cta_sub">Coming soon</small></span></span></div>
+    </div>
+    <div class="wrap"><div class="shots">
+      <img src="img/shot-map.png" alt="Volto map" />
+      <img src="img/shot-detail.png" alt="Volto station details" />
+      <img src="img/shot-settings.png" alt="Volto settings" />
+    </div></div>
+    <section class="block">
+      <div class="wrap">
+        <h2 data-i18n="feat_h2"></h2>
+        <div class="grid">
+          <div class="feat"><div class="ic">🗺️</div><h3 data-i18n="f1_t"></h3><p data-i18n="f1_d"></p></div>
+          <div class="feat"><div class="ic">🎛️</div><h3 data-i18n="f2_t"></h3><p data-i18n="f2_d"></p></div>
+          <div class="feat"><div class="ic">🧭</div><h3 data-i18n="f3_t"></h3><p data-i18n="f3_d"></p></div>
+          <div class="feat"><div class="ic">➡️</div><h3 data-i18n="f4_t"></h3><p data-i18n="f4_d"></p></div>
+          <div class="feat"><div class="ic">🎨</div><h3 data-i18n="f5_t"></h3><p data-i18n="f5_d"></p></div>
+          <div class="feat"><div class="ic">🔒</div><h3 data-i18n="f6_t"></h3><p data-i18n="f6_d"></p></div>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- PRIVACY -->
+  <section class="view wrap article" id="view-privacy">
+    <h1 data-i18n="pp_h1">Privacy Policy</h1>
+    <p class="updated" data-i18n="pp_updated"></p>
+    <p class="lead" data-i18n="pp_lead"></p>
+    <h2 data-i18n="pp_loc_t"></h2><p data-i18n="pp_loc_d"></p>
+    <h2 data-i18n="pp_data_t"></h2><p data-i18n="pp_data_d"></p>
+    <h2 data-i18n="pp_third_t"></h2><p data-i18n="pp_third_d"></p>
+    <h2 data-i18n="pp_purch_t"></h2><p data-i18n="pp_purch_d"></p>
+    <h2 data-i18n="pp_track_t"></h2><p data-i18n="pp_track_d"></p>
+    <h2 data-i18n="pp_changes_t"></h2><p data-i18n="pp_changes_d"></p>
+    <h2 data-i18n="pp_contact_t"></h2><p><span data-i18n="pp_contact_d"></span> <a href="mailto:aterzievb@gmail.com">aterzievb@gmail.com</a></p>
+  </section>
+
+  <!-- TERMS -->
+  <section class="view wrap article" id="view-terms">
+    <h1 data-i18n="tos_h1">Terms of Use</h1>
+    <p class="updated" data-i18n="tos_updated"></p>
+    <p class="lead" data-i18n="tos_lead"></p>
+    <h2 data-i18n="tos_service_t"></h2><p data-i18n="tos_service_d"></p>
+    <h2 data-i18n="tos_accuracy_t"></h2><p data-i18n="tos_accuracy_d"></p>
+    <h2 data-i18n="tos_nav_t"></h2><p data-i18n="tos_nav_d"></p>
+    <h2 data-i18n="tos_donate_t"></h2><p data-i18n="tos_donate_d"></p>
+    <h2 data-i18n="tos_use_t"></h2><p data-i18n="tos_use_d"></p>
+    <h2 data-i18n="tos_liab_t"></h2><p data-i18n="tos_liab_d"></p>
+    <h2 data-i18n="tos_changes_t"></h2><p data-i18n="tos_changes_d"></p>
+    <h2 data-i18n="tos_contact_t"></h2><p><span data-i18n="tos_contact_d"></span> <a href="mailto:aterzievb@gmail.com">aterzievb@gmail.com</a></p>
+  </section>
+
+  <!-- SUPPORT -->
+  <section class="view wrap article" id="view-support">
+    <h1 data-i18n="sup_h1">Support</h1>
+    <p class="lead" data-i18n="sup_lead"></p>
+    <div class="faq">
+      <details open><summary data-i18n="q1"></summary><p data-i18n="a1"></p></details>
+      <details><summary data-i18n="q2"></summary><p data-i18n="a2"></p></details>
+      <details><summary data-i18n="q3"></summary><p data-i18n="a3"></p></details>
+      <details><summary data-i18n="q4"></summary><p data-i18n="a4"></p></details>
+      <details><summary data-i18n="q5"></summary><p data-i18n="a5"></p></details>
+    </div>
+    <div class="callout"><h2 style="margin-top:0" data-i18n="sup_contact_t"></h2>
+      <p><span data-i18n="sup_contact_d">Email</span>: <a href="mailto:aterzievb@gmail.com">aterzievb@gmail.com</a></p>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="wrap row">
+    <span><strong>Volto</strong> — <span data-i18n="foot_tag"></span></span>
+    <span class="links">
+      <a data-go="privacy" data-i18n="nav_privacy">Privacy</a>
+      <a data-go="terms" data-i18n="nav_terms">Terms</a>
+      <a data-go="support" data-i18n="nav_support">Support</a>
+    </span>
+  </div>
+  <div class="wrap" style="margin-top:10px;">© 2026 Volto. <span data-i18n="foot_rights"></span></div>
+</footer>
+
+<script>
+const LANGS=[["en","EN"],["bg","BG"],["es","ES"],["de","DE"],["fr","FR"],["it","IT"]];
+const I18N={
+en:{nav_home:"Home",nav_privacy:"Privacy",nav_terms:"Terms",nav_support:"Support",
+hero_h1:'Find EV charging, <span class="accent">fast.</span>',
+hero_sub:"Volto shows charging stations around you on a clean, smart map — power and brand at a glance, no account, no clutter.",
+cta_main:"App Store",cta_sub:"Coming soon",feat_h2:"Built to be the simplest EV map",
+f1_t:"Smart map",f1_d:"Brand-coloured pins show the charging power right on the map. Zoom in for names, zoom out to cluster.",
+f2_t:"Powerful filters",f2_d:"Filter by connector, power and free/paid. Set your car once and see only stations that fit it.",
+f3_t:"Follow as you drive",f3_d:"The map keeps you centred and the zoom adapts to your speed, like a navigation app.",
+f4_t:"Navigate anywhere",f4_d:"One tap hands off to Apple Maps, Google Maps or Waze — whichever you have installed.",
+f5_t:"Themes & languages",f5_d:"Eight colour themes, light/dark/system, and six languages. Make it yours.",
+f6_t:"Privacy first",f6_d:"No sign-up. Your location stays on your device and is never collected or sold.",
+foot_tag:"Find EV charging, fast.",foot_rights:"All rights reserved.",
+pp_h1:"Privacy Policy",pp_updated:"Last updated: 18 June 2026",
+pp_lead:"Volto is built to respect your privacy. The app has no accounts and does not collect, store on our servers, or sell your personal data.",
+pp_loc_t:"Location",pp_loc_d:"If you allow it, your location is used on your device to show nearby stations, distances and to start navigation. It is not sent to us, not shared, and never used for advertising or tracking. You can use the app without location and still browse stations.",
+pp_data_t:"Data stored on your device",pp_data_d:"Your settings — theme, language, default navigation app, car profile and recent searches — are saved only on your device. They are not uploaded.",
+pp_third_t:"Third-party data sources",pp_third_d:"Station information comes from Open Charge Map and Apple Maps. When you tap “Navigate”, the destination is handed to your chosen maps app (Apple Maps, Google Maps or Waze), which then applies its own privacy terms.",
+pp_purch_t:"Donations",pp_purch_d:"Optional tips are processed through Apple’s In-App Purchase. Payments are handled entirely by Apple; we never see your payment details. Tips are voluntary and do not unlock features.",
+pp_track_t:"No tracking",pp_track_d:"Volto contains no third-party advertising, analytics or tracking SDKs.",
+pp_changes_t:"Changes",pp_changes_d:"We may update this policy as the app evolves. The date above shows the latest version.",
+pp_contact_t:"Contact",pp_contact_d:"Questions about privacy? Email us at",
+tos_h1:"Terms of Use",tos_updated:"Last updated: 18 June 2026",
+tos_lead:"By downloading or using Volto you agree to these terms. If you do not agree, please do not use the app.",
+tos_service_t:"The service",tos_service_d:"Volto helps you find EV charging stations on a map and hands off navigation to other apps. Charging data is provided by third parties (Open Charge Map and Apple Maps).",
+tos_accuracy_t:"No guarantee of accuracy",tos_accuracy_d:"Station locations, availability, connectors, power and pricing may be incomplete, outdated or wrong. Always verify on site. Volto is an informational tool — use it at your own risk and do not rely on it as your only source.",
+tos_nav_t:"Navigation",tos_nav_d:"Navigation is performed by third-party apps (Apple Maps, Google Maps, Waze) under their own terms. Drive responsibly and follow local laws — do not operate the app while driving.",
+tos_donate_t:"Donations",tos_donate_d:"Tips are optional, processed by Apple’s In-App Purchase, and do not unlock features. They are generally non-refundable except where required by law or Apple’s policies.",
+tos_use_t:"Acceptable use",tos_use_d:"Use Volto only for lawful, personal purposes. Do not attempt to disrupt, reverse-engineer or misuse the app or its data sources.",
+tos_liab_t:"Liability",tos_liab_d:"Volto is provided “as is”, without warranties. To the maximum extent permitted by law, we are not liable for any loss or damage arising from use of the app or reliance on its data (for example, arriving at a station that is unavailable).",
+tos_changes_t:"Changes",tos_changes_d:"We may update these terms as the app evolves. The date above shows the latest version.",
+tos_contact_t:"Contact",tos_contact_d:"Questions about these terms? Email us at",
+sup_h1:"Support",sup_lead:"Need a hand with Volto? Most questions are answered below. If not, just email us.",
+q1:"I don’t see any stations",a1:"Check your internet connection and that location is allowed. Pan or zoom the map a little to load the area. Station data comes from Open Charge Map and Apple Maps and may be sparse in some regions.",
+q2:"The map won’t follow me / no location",a2:"Tap the location button, or open iOS Settings → Volto → Location and allow access. Without location you can still browse and search.",
+q3:"How do I change language or theme?",a3:"Open Settings (gear icon) → Appearance, Theme and Language. You can also turn haptics on or off there.",
+q4:"What does “For my car” do?",a4:"Set your car’s connectors once in Settings → My car. Then the “For my car” chip shows only compatible stations and the detail screen marks compatibility.",
+q5:"Do I have to donate?",a5:"No. Tips are completely optional and never lock any features — they just support development. Thank you if you do!",
+sup_contact_t:"Contact us",sup_contact_d:"Email"},
+
+bg:{nav_home:"Начало",nav_privacy:"Поверителност",nav_terms:"Условия",nav_support:"Поддръжка",
+hero_h1:'Намери зарядна <span class="accent">бързо.</span>',
+hero_sub:"Volto показва зарядните станции около теб на чиста, умна карта — мощност и марка от пръв поглед, без регистрация, без излишно.",
+cta_main:"App Store",cta_sub:"Очаквайте скоро",feat_h2:"Създадено да е най-простата карта за зареждане",
+f1_t:"Умна карта",f1_d:"Пиновете с цвят на марката показват мощността направо на картата. Приближи за имена, отдалечи за групиране.",
+f2_t:"Мощни филтри",f2_d:"Филтрирай по конектор, мощност и безплатно/платено. Въведи колата си веднъж и виж само подходящите станции.",
+f3_t:"Следва те докато караш",f3_d:"Картата те държи в центъра, а зумът се нагажда спрямо скоростта — като навигация.",
+f4_t:"Навигирай навсякъде",f4_d:"С един тап предава на Apple Maps, Google Maps или Waze — която имаш инсталирана.",
+f5_t:"Теми и езици",f5_d:"Осем цветови теми, светло/тъмно/системно и шест езика. Направи го твое.",
+f6_t:"Поверителност на първо място",f6_d:"Без регистрация. Локацията ти остава на устройството и никога не се събира или продава.",
+foot_tag:"Намери зарядна бързо.",foot_rights:"Всички права запазени.",
+pp_h1:"Политика за поверителност",pp_updated:"Последна актуализация: 18 юни 2026 г.",
+pp_lead:"Volto е създадено да уважава поверителността ти. Приложението няма акаунти и не събира, не съхранява на наши сървъри и не продава лични данни.",
+pp_loc_t:"Локация",pp_loc_d:"Ако разрешиш, локацията ти се използва на устройството, за да показва близки станции, разстояния и да стартира навигация. Не се изпраща към нас, не се споделя и никога не се ползва за реклама или проследяване. Можеш да ползваш приложението и без локация.",
+pp_data_t:"Данни на твоето устройство",pp_data_d:"Настройките ти — тема, език, навигация по подразбиране, профил на колата и скорошни търсения — се пазят само на устройството. Не се качват никъде.",
+pp_third_t:"Външни източници на данни",pp_third_d:"Информацията за станциите идва от Open Charge Map и Apple Maps. При „Навигирай“ дестинацията се предава на избраното от теб приложение за карти (Apple Maps, Google Maps или Waze), което прилага собствените си правила.",
+pp_purch_t:"Дарения",pp_purch_d:"Незадължителните дарения минават през Apple In-App Purchase. Плащанията се обработват изцяло от Apple; ние никога не виждаме платежните ти данни. Даренията са доброволни и не отключват функции.",
+pp_track_t:"Без проследяване",pp_track_d:"Volto не съдържа реклами, аналитични или проследяващи SDK-та на трети страни.",
+pp_changes_t:"Промени",pp_changes_d:"Може да обновяваме тази политика с развитието на приложението. Датата по-горе показва последната версия.",
+pp_contact_t:"Контакт",pp_contact_d:"Въпроси за поверителността? Пиши ни на",
+tos_h1:"Условия за ползване",tos_updated:"Последна актуализация: 18 юни 2026 г.",
+tos_lead:"С изтеглянето или ползването на Volto се съгласяваш с тези условия. Ако не си съгласен, моля не ползвай приложението.",
+tos_service_t:"Услугата",tos_service_d:"Volto ти помага да намираш зарядни станции на карта и предава навигацията на други приложения. Данните за станциите идват от трети страни (Open Charge Map и Apple Maps).",
+tos_accuracy_t:"Без гаранция за точност",tos_accuracy_d:"Локациите, наличността, конекторите, мощността и цените може да са непълни, остарели или грешни. Винаги проверявай на място. Volto е информационен инструмент — ползвай го на собствен риск и не разчитай само на него.",
+tos_nav_t:"Навигация",tos_nav_d:"Навигацията се извършва от приложения на трети страни (Apple Maps, Google Maps, Waze) по техните условия. Карай отговорно и спазвай законите — не работи с приложението докато шофираш.",
+tos_donate_t:"Дарения",tos_donate_d:"Даренията са доброволни, минават през Apple In-App Purchase и не отключват функции. По принцип не подлежат на връщане освен ако законът или правилата на Apple го изискват.",
+tos_use_t:"Допустимо ползване",tos_use_d:"Ползвай Volto само за законни, лични цели. Не се опитвай да нарушаваш, реверс-инженерстваш или злоупотребяваш с приложението или източниците му на данни.",
+tos_liab_t:"Отговорност",tos_liab_d:"Volto се предоставя „както е“, без гаранции. До максимално допустимата от закона степен не носим отговорност за загуби или вреди от ползването на приложението или разчитането на данните му (например стигане до станция, която не работи).",
+tos_changes_t:"Промени",tos_changes_d:"Може да обновяваме тези условия с развитието на приложението. Датата по-горе показва последната версия.",
+tos_contact_t:"Контакт",tos_contact_d:"Въпроси за условията? Пиши ни на",
+sup_h1:"Поддръжка",sup_lead:"Нужна ти е помощ с Volto? Повечето въпроси са отговорени по-долу. Ако не — просто ни пиши.",
+q1:"Не виждам станции",a1:"Провери интернет връзката и че локацията е разрешена. Премести или приближи картата малко, за да се зареди районът. Данните идват от Open Charge Map и Apple Maps и в някои региони може да са оскъдни.",
+q2:"Картата не ме следва / няма локация",a2:"Натисни бутона за локация или отвори iOS Настройки → Volto → Локация и разреши достъп. Без локация пак можеш да разглеждаш и търсиш.",
+q3:"Как сменям език или тема?",a3:"Отвори Настройки (зъбното колело) → Изглед, Тема и Език. Там можеш да включиш или изключиш и вибрацията.",
+q4:"Какво прави „За моята кола“?",a4:"Въведи конекторите на колата си веднъж в Настройки → Моята кола. Тогава бутонът „За моята кола“ показва само съвместими станции, а детайлът отбелязва съвместимостта.",
+q5:"Задължително ли е да даря?",a5:"Не. Даренията са напълно доброволни и никога не заключват функции — само подкрепят разработката. Благодарим ти, ако го направиш!",
+sup_contact_t:"Свържи се с нас",sup_contact_d:"Имейл"},
+
+es:{nav_home:"Inicio",nav_privacy:"Privacidad",nav_terms:"Términos",nav_support:"Soporte",
+hero_h1:'Encuentra carga, <span class="accent">rápido.</span>',
+hero_sub:"Volto muestra las estaciones de carga a tu alrededor en un mapa limpio e inteligente — potencia y marca de un vistazo, sin cuenta, sin desorden.",
+cta_main:"App Store",cta_sub:"Próximamente",feat_h2:"Hecho para ser el mapa de carga más simple",
+f1_t:"Mapa inteligente",f1_d:"Los pines con el color de la marca muestran la potencia en el propio mapa. Acércate para ver nombres, aléjate para agrupar.",
+f2_t:"Filtros potentes",f2_d:"Filtra por conector, potencia y gratis/de pago. Configura tu coche una vez y ve solo las estaciones compatibles.",
+f3_t:"Te sigue al conducir",f3_d:"El mapa te mantiene centrado y el zoom se adapta a tu velocidad, como una app de navegación.",
+f4_t:"Navega a cualquier sitio",f4_d:"Un toque pasa a Apple Maps, Google Maps o Waze — la que tengas instalada.",
+f5_t:"Temas e idiomas",f5_d:"Ocho temas de color, claro/oscuro/sistema y seis idiomas. Hazlo tuyo.",
+f6_t:"Privacidad ante todo",f6_d:"Sin registro. Tu ubicación se queda en tu dispositivo y nunca se recopila ni se vende.",
+foot_tag:"Encuentra carga, rápido.",foot_rights:"Todos los derechos reservados.",
+pp_h1:"Política de privacidad",pp_updated:"Última actualización: 18 de junio de 2026",
+pp_lead:"Volto está hecha para respetar tu privacidad. La app no tiene cuentas y no recopila, almacena en nuestros servidores ni vende tus datos personales.",
+pp_loc_t:"Ubicación",pp_loc_d:"Si lo permites, tu ubicación se usa en tu dispositivo para mostrar estaciones cercanas, distancias e iniciar la navegación. No se nos envía, no se comparte y nunca se usa para publicidad o seguimiento. Puedes usar la app sin ubicación.",
+pp_data_t:"Datos en tu dispositivo",pp_data_d:"Tus ajustes — tema, idioma, app de navegación predeterminada, perfil del coche y búsquedas recientes — se guardan solo en tu dispositivo. No se suben.",
+pp_third_t:"Fuentes de datos de terceros",pp_third_d:"La información de las estaciones procede de Open Charge Map y Apple Maps. Al pulsar «Navegar», el destino se pasa a tu app de mapas elegida (Apple Maps, Google Maps o Waze), que aplica sus propias condiciones.",
+pp_purch_t:"Donaciones",pp_purch_d:"Las propinas opcionales se procesan mediante la compra dentro de la app de Apple. Los pagos los gestiona Apple por completo; nunca vemos tus datos de pago. Son voluntarias y no desbloquean funciones.",
+pp_track_t:"Sin seguimiento",pp_track_d:"Volto no contiene SDK de publicidad, analítica ni seguimiento de terceros.",
+pp_changes_t:"Cambios",pp_changes_d:"Podemos actualizar esta política a medida que la app evoluciona. La fecha de arriba indica la última versión.",
+pp_contact_t:"Contacto",pp_contact_d:"¿Dudas sobre privacidad? Escríbenos a",
+tos_h1:"Términos de uso",tos_updated:"Última actualización: 18 de junio de 2026",
+tos_lead:"Al descargar o usar Volto aceptas estos términos. Si no estás de acuerdo, no uses la app.",
+tos_service_t:"El servicio",tos_service_d:"Volto te ayuda a encontrar estaciones de carga en un mapa y delega la navegación en otras apps. Los datos de carga los proporcionan terceros (Open Charge Map y Apple Maps).",
+tos_accuracy_t:"Sin garantía de exactitud",tos_accuracy_d:"Las ubicaciones, disponibilidad, conectores, potencia y precios pueden estar incompletos, desactualizados o ser erróneos. Verifica siempre in situ. Volto es una herramienta informativa — úsala bajo tu responsabilidad y no la tomes como única fuente.",
+tos_nav_t:"Navegación",tos_nav_d:"La navegación la realizan apps de terceros (Apple Maps, Google Maps, Waze) según sus propios términos. Conduce de forma responsable y respeta las leyes — no uses la app mientras conduces.",
+tos_donate_t:"Donaciones",tos_donate_d:"Las propinas son opcionales, las procesa la compra dentro de la app de Apple y no desbloquean funciones. Por lo general no son reembolsables, salvo cuando lo exija la ley o las políticas de Apple.",
+tos_use_t:"Uso aceptable",tos_use_d:"Usa Volto solo con fines lícitos y personales. No intentes interrumpir, aplicar ingeniería inversa ni hacer un uso indebido de la app o sus fuentes de datos.",
+tos_liab_t:"Responsabilidad",tos_liab_d:"Volto se ofrece «tal cual», sin garantías. En la máxima medida permitida por la ley, no somos responsables de pérdidas o daños derivados del uso de la app o de confiar en sus datos (por ejemplo, llegar a una estación no disponible).",
+tos_changes_t:"Cambios",tos_changes_d:"Podemos actualizar estos términos a medida que la app evoluciona. La fecha de arriba indica la última versión.",
+tos_contact_t:"Contacto",tos_contact_d:"¿Dudas sobre los términos? Escríbenos a",
+sup_h1:"Soporte",sup_lead:"¿Necesitas ayuda con Volto? La mayoría de las dudas están abajo. Si no, escríbenos.",
+q1:"No veo estaciones",a1:"Comprueba tu conexión a internet y que la ubicación esté permitida. Mueve o acerca un poco el mapa para cargar la zona. Los datos vienen de Open Charge Map y Apple Maps y pueden ser escasos en algunas regiones.",
+q2:"El mapa no me sigue / sin ubicación",a2:"Pulsa el botón de ubicación, o abre Ajustes de iOS → Volto → Ubicación y permite el acceso. Sin ubicación aún puedes explorar y buscar.",
+q3:"¿Cómo cambio el idioma o el tema?",a3:"Abre Ajustes (icono de engranaje) → Apariencia, Tema e Idioma. Ahí también puedes activar o desactivar la vibración.",
+q4:"¿Qué hace «Para mi coche»?",a4:"Configura los conectores de tu coche una vez en Ajustes → Mi coche. Entonces el botón «Para mi coche» muestra solo estaciones compatibles y la ficha indica la compatibilidad.",
+q5:"¿Tengo que donar?",a5:"No. Las propinas son totalmente opcionales y nunca bloquean funciones — solo apoyan el desarrollo. ¡Gracias si lo haces!",
+sup_contact_t:"Contáctanos",sup_contact_d:"Correo"},
+
+de:{nav_home:"Start",nav_privacy:"Datenschutz",nav_terms:"AGB",nav_support:"Support",
+hero_h1:'Ladestationen finden — <span class="accent">schnell.</span>',
+hero_sub:"Volto zeigt Ladestationen um dich herum auf einer klaren, smarten Karte — Leistung und Marke auf einen Blick, ohne Konto, ohne Ballast.",
+cta_main:"App Store",cta_sub:"Bald verfügbar",feat_h2:"Gebaut als die einfachste Ladekarte",
+f1_t:"Smarte Karte",f1_d:"Markenfarbige Pins zeigen die Ladeleistung direkt auf der Karte. Heranzoomen für Namen, herauszoomen zum Gruppieren.",
+f2_t:"Starke Filter",f2_d:"Filtere nach Stecker, Leistung und kostenlos/kostenpflichtig. Auto einmal einstellen und nur passende Stationen sehen.",
+f3_t:"Folgt dir beim Fahren",f3_d:"Die Karte hält dich zentriert und der Zoom passt sich deinem Tempo an — wie eine Navi-App.",
+f4_t:"Überallhin navigieren",f4_d:"Ein Tipp übergibt an Apple Maps, Google Maps oder Waze — was immer installiert ist.",
+f5_t:"Themes & Sprachen",f5_d:"Acht Farbthemes, hell/dunkel/System und sechs Sprachen. Mach es zu deinem.",
+f6_t:"Datenschutz zuerst",f6_d:"Keine Anmeldung. Dein Standort bleibt auf deinem Gerät und wird nie erfasst oder verkauft.",
+foot_tag:"Ladestationen finden, schnell.",foot_rights:"Alle Rechte vorbehalten.",
+pp_h1:"Datenschutzerklärung",pp_updated:"Zuletzt aktualisiert: 18. Juni 2026",
+pp_lead:"Volto ist so gebaut, dass es deine Privatsphäre respektiert. Die App hat keine Konten und erhebt, speichert auf unseren Servern oder verkauft keine personenbezogenen Daten.",
+pp_loc_t:"Standort",pp_loc_d:"Wenn du es erlaubst, wird dein Standort auf deinem Gerät verwendet, um nahe Stationen, Entfernungen anzuzeigen und die Navigation zu starten. Er wird nicht an uns gesendet, nicht geteilt und nie für Werbung oder Tracking genutzt. Du kannst die App auch ohne Standort nutzen.",
+pp_data_t:"Daten auf deinem Gerät",pp_data_d:"Deine Einstellungen — Theme, Sprache, Standard-Navi-App, Auto-Profil und letzte Suchen — werden nur auf deinem Gerät gespeichert. Sie werden nicht hochgeladen.",
+pp_third_t:"Datenquellen Dritter",pp_third_d:"Stationsinformationen stammen von Open Charge Map und Apple Maps. Bei „Navigieren“ wird das Ziel an deine gewählte Karten-App (Apple Maps, Google Maps oder Waze) übergeben, die ihre eigenen Datenschutzbedingungen anwendet.",
+pp_purch_t:"Spenden",pp_purch_d:"Optionale Trinkgelder laufen über Apples In-App-Kauf. Zahlungen werden vollständig von Apple abgewickelt; wir sehen deine Zahlungsdaten nie. Sie sind freiwillig und schalten keine Funktionen frei.",
+pp_track_t:"Kein Tracking",pp_track_d:"Volto enthält keine Werbe-, Analyse- oder Tracking-SDKs von Drittanbietern.",
+pp_changes_t:"Änderungen",pp_changes_d:"Wir können diese Richtlinie mit der Weiterentwicklung der App aktualisieren. Das Datum oben zeigt die neueste Version.",
+pp_contact_t:"Kontakt",pp_contact_d:"Fragen zum Datenschutz? Schreib uns an",
+tos_h1:"Nutzungsbedingungen",tos_updated:"Zuletzt aktualisiert: 18. Juni 2026",
+tos_lead:"Mit dem Download oder der Nutzung von Volto stimmst du diesen Bedingungen zu. Wenn nicht, nutze die App bitte nicht.",
+tos_service_t:"Der Dienst",tos_service_d:"Volto hilft dir, Ladestationen auf einer Karte zu finden, und übergibt die Navigation an andere Apps. Die Ladedaten stammen von Dritten (Open Charge Map und Apple Maps).",
+tos_accuracy_t:"Keine Gewähr für Richtigkeit",tos_accuracy_d:"Standorte, Verfügbarkeit, Stecker, Leistung und Preise können unvollständig, veraltet oder falsch sein. Prüfe immer vor Ort. Volto ist ein Informationswerkzeug — Nutzung auf eigenes Risiko, verlasse dich nicht allein darauf.",
+tos_nav_t:"Navigation",tos_nav_d:"Die Navigation erfolgt durch Dritt-Apps (Apple Maps, Google Maps, Waze) nach deren Bedingungen. Fahre verantwortungsvoll und halte dich an die Gesetze — bediene die App nicht während der Fahrt.",
+tos_donate_t:"Spenden",tos_donate_d:"Trinkgelder sind freiwillig, werden über Apples In-App-Kauf abgewickelt und schalten keine Funktionen frei. Sie sind grundsätzlich nicht erstattungsfähig, außer wo Gesetz oder Apples Richtlinien dies verlangen.",
+tos_use_t:"Zulässige Nutzung",tos_use_d:"Nutze Volto nur für rechtmäßige, persönliche Zwecke. Versuche nicht, die App oder ihre Datenquellen zu stören, zurückzuentwickeln oder zu missbrauchen.",
+tos_liab_t:"Haftung",tos_liab_d:"Volto wird „wie besehen“ ohne Gewährleistung bereitgestellt. Soweit gesetzlich zulässig, haften wir nicht für Verluste oder Schäden aus der Nutzung der App oder dem Vertrauen auf ihre Daten (z. B. das Erreichen einer nicht verfügbaren Station).",
+tos_changes_t:"Änderungen",tos_changes_d:"Wir können diese Bedingungen mit der Weiterentwicklung der App aktualisieren. Das Datum oben zeigt die neueste Version.",
+tos_contact_t:"Kontakt",tos_contact_d:"Fragen zu den Bedingungen? Schreib uns an",
+sup_h1:"Support",sup_lead:"Brauchst du Hilfe mit Volto? Die meisten Fragen sind unten beantwortet. Wenn nicht, schreib uns einfach.",
+q1:"Ich sehe keine Stationen",a1:"Prüfe deine Internetverbindung und ob der Standort erlaubt ist. Verschiebe oder zoome die Karte etwas, um den Bereich zu laden. Die Daten stammen von Open Charge Map und Apple Maps und können in manchen Regionen spärlich sein.",
+q2:"Die Karte folgt mir nicht / kein Standort",a2:"Tippe auf die Standort-Taste oder öffne iOS-Einstellungen → Volto → Standort und erlaube den Zugriff. Ohne Standort kannst du trotzdem stöbern und suchen.",
+q3:"Wie ändere ich Sprache oder Theme?",a3:"Öffne Einstellungen (Zahnrad) → Darstellung, Theme und Sprache. Dort kannst du auch die Haptik ein- oder ausschalten.",
+q4:"Was macht „Für mein Auto“?",a4:"Stelle die Stecker deines Autos einmal unter Einstellungen → Mein Auto ein. Dann zeigt der Chip „Für mein Auto“ nur kompatible Stationen und die Detailansicht markiert die Kompatibilität.",
+q5:"Muss ich spenden?",a5:"Nein. Trinkgelder sind völlig freiwillig und schalten nie Funktionen frei — sie unterstützen nur die Entwicklung. Danke, wenn du es tust!",
+sup_contact_t:"Kontaktiere uns",sup_contact_d:"E-Mail"},
+
+fr:{nav_home:"Accueil",nav_privacy:"Confidentialité",nav_terms:"Conditions",nav_support:"Assistance",
+hero_h1:'Trouvez une borne, <span class="accent">vite.</span>',
+hero_sub:"Volto affiche les bornes de recharge autour de vous sur une carte claire et intelligente — puissance et marque en un coup d’œil, sans compte, sans encombrement.",
+cta_main:"App Store",cta_sub:"Bientôt disponible",feat_h2:"Conçue pour être la carte de recharge la plus simple",
+f1_t:"Carte intelligente",f1_d:"Des repères aux couleurs des marques affichent la puissance directement sur la carte. Zoomez pour les noms, dézoomez pour regrouper.",
+f2_t:"Filtres puissants",f2_d:"Filtrez par connecteur, puissance et gratuit/payant. Réglez votre voiture une fois et ne voyez que les bornes compatibles.",
+f3_t:"Vous suit en conduisant",f3_d:"La carte vous garde au centre et le zoom s’adapte à votre vitesse, comme une appli de navigation.",
+f4_t:"Naviguez partout",f4_d:"Une touche transfère vers Apple Maps, Google Maps ou Waze — celle que vous avez installée.",
+f5_t:"Thèmes et langues",f5_d:"Huit thèmes de couleur, clair/sombre/système et six langues. Personnalisez-la.",
+f6_t:"La confidentialité d’abord",f6_d:"Aucune inscription. Votre position reste sur votre appareil et n’est jamais collectée ni vendue.",
+foot_tag:"Trouvez une borne, vite.",foot_rights:"Tous droits réservés.",
+pp_h1:"Politique de confidentialité",pp_updated:"Dernière mise à jour : 18 juin 2026",
+pp_lead:"Volto est conçue pour respecter votre vie privée. L’app n’a pas de comptes et ne collecte pas, ne stocke pas sur nos serveurs et ne vend pas vos données personnelles.",
+pp_loc_t:"Localisation",pp_loc_d:"Si vous l’autorisez, votre position est utilisée sur votre appareil pour afficher les bornes proches, les distances et lancer la navigation. Elle ne nous est pas envoyée, n’est pas partagée et n’est jamais utilisée pour la publicité ou le suivi. Vous pouvez utiliser l’app sans localisation.",
+pp_data_t:"Données sur votre appareil",pp_data_d:"Vos réglages — thème, langue, app de navigation par défaut, profil de voiture et recherches récentes — sont enregistrés uniquement sur votre appareil. Ils ne sont pas téléversés.",
+pp_third_t:"Sources de données tierces",pp_third_d:"Les informations sur les bornes proviennent d’Open Charge Map et d’Apple Maps. En appuyant sur « Naviguer », la destination est transmise à l’app de cartes choisie (Apple Maps, Google Maps ou Waze), qui applique ses propres conditions.",
+pp_purch_t:"Dons",pp_purch_d:"Les pourboires facultatifs passent par l’achat intégré d’Apple. Les paiements sont entièrement gérés par Apple ; nous ne voyons jamais vos données de paiement. Ils sont volontaires et ne débloquent aucune fonction.",
+pp_track_t:"Aucun suivi",pp_track_d:"Volto ne contient aucun SDK publicitaire, d’analyse ou de suivi tiers.",
+pp_changes_t:"Modifications",pp_changes_d:"Nous pouvons mettre à jour cette politique à mesure que l’app évolue. La date ci-dessus indique la dernière version.",
+pp_contact_t:"Contact",pp_contact_d:"Des questions sur la confidentialité ? Écrivez-nous à",
+tos_h1:"Conditions d’utilisation",tos_updated:"Dernière mise à jour : 18 juin 2026",
+tos_lead:"En téléchargeant ou en utilisant Volto, vous acceptez ces conditions. Si vous n’êtes pas d’accord, n’utilisez pas l’app.",
+tos_service_t:"Le service",tos_service_d:"Volto vous aide à trouver des bornes de recharge sur une carte et délègue la navigation à d’autres apps. Les données de recharge proviennent de tiers (Open Charge Map et Apple Maps).",
+tos_accuracy_t:"Aucune garantie d’exactitude",tos_accuracy_d:"Les emplacements, la disponibilité, les connecteurs, la puissance et les tarifs peuvent être incomplets, obsolètes ou erronés. Vérifiez toujours sur place. Volto est un outil d’information — utilisez-le à vos risques et ne vous y fiez pas comme seule source.",
+tos_nav_t:"Navigation",tos_nav_d:"La navigation est assurée par des apps tierces (Apple Maps, Google Maps, Waze) selon leurs propres conditions. Conduisez de manière responsable et respectez la loi — n’utilisez pas l’app en conduisant.",
+tos_donate_t:"Dons",tos_donate_d:"Les pourboires sont facultatifs, traités par l’achat intégré d’Apple, et ne débloquent aucune fonction. Ils ne sont généralement pas remboursables, sauf si la loi ou les règles d’Apple l’exigent.",
+tos_use_t:"Utilisation acceptable",tos_use_d:"Utilisez Volto uniquement à des fins licites et personnelles. N’essayez pas de perturber, de désosser ou de détourner l’app ou ses sources de données.",
+tos_liab_t:"Responsabilité",tos_liab_d:"Volto est fournie « en l’état », sans garantie. Dans la mesure permise par la loi, nous ne sommes pas responsables des pertes ou dommages liés à l’utilisation de l’app ou à la confiance accordée à ses données (par exemple, arriver à une borne indisponible).",
+tos_changes_t:"Modifications",tos_changes_d:"Nous pouvons mettre à jour ces conditions à mesure que l’app évolue. La date ci-dessus indique la dernière version.",
+tos_contact_t:"Contact",tos_contact_d:"Des questions sur ces conditions ? Écrivez-nous à",
+sup_h1:"Assistance",sup_lead:"Besoin d’aide avec Volto ? La plupart des questions trouvent réponse ci-dessous. Sinon, écrivez-nous.",
+q1:"Je ne vois aucune borne",a1:"Vérifiez votre connexion internet et que la localisation est autorisée. Déplacez ou zoomez un peu la carte pour charger la zone. Les données viennent d’Open Charge Map et d’Apple Maps et peuvent être rares dans certaines régions.",
+q2:"La carte ne me suit pas / pas de position",a2:"Appuyez sur le bouton de localisation, ou ouvrez Réglages iOS → Volto → Position et autorisez l’accès. Sans position, vous pouvez tout de même explorer et chercher.",
+q3:"Comment changer la langue ou le thème ?",a3:"Ouvrez Réglages (icône d’engrenage) → Apparence, Thème et Langue. Vous pouvez aussi y activer ou désactiver le retour haptique.",
+q4:"À quoi sert « Pour ma voiture » ?",a4:"Réglez les connecteurs de votre voiture une fois dans Réglages → Ma voiture. Le bouton « Pour ma voiture » n’affiche alors que les bornes compatibles et la fiche indique la compatibilité.",
+q5:"Dois-je faire un don ?",a5:"Non. Les pourboires sont totalement facultatifs et ne bloquent jamais de fonctions — ils soutiennent seulement le développement. Merci si vous le faites !",
+sup_contact_t:"Contactez-nous",sup_contact_d:"E-mail"},
+
+it:{nav_home:"Home",nav_privacy:"Privacy",nav_terms:"Termini",nav_support:"Supporto",
+hero_h1:'Trova la ricarica, <span class="accent">veloce.</span>',
+hero_sub:"Volto mostra le stazioni di ricarica intorno a te su una mappa pulita e intelligente — potenza e marca a colpo d’occhio, senza account, senza confusione.",
+cta_main:"App Store",cta_sub:"Presto disponibile",feat_h2:"Pensata per essere la mappa di ricarica più semplice",
+f1_t:"Mappa intelligente",f1_d:"I segnaposto con il colore della marca mostrano la potenza direttamente sulla mappa. Zoom in per i nomi, zoom out per raggruppare.",
+f2_t:"Filtri potenti",f2_d:"Filtra per connettore, potenza e gratis/a pagamento. Imposta l’auto una volta e vedi solo le stazioni compatibili.",
+f3_t:"Ti segue mentre guidi",f3_d:"La mappa ti tiene al centro e lo zoom si adatta alla velocità, come un’app di navigazione.",
+f4_t:"Naviga ovunque",f4_d:"Un tocco passa ad Apple Maps, Google Maps o Waze — quella che hai installato.",
+f5_t:"Temi e lingue",f5_d:"Otto temi di colore, chiaro/scuro/sistema e sei lingue. Rendila tua.",
+f6_t:"Privacy prima di tutto",f6_d:"Nessuna registrazione. La tua posizione resta sul dispositivo e non viene mai raccolta o venduta.",
+foot_tag:"Trova la ricarica, veloce.",foot_rights:"Tutti i diritti riservati.",
+pp_h1:"Informativa sulla privacy",pp_updated:"Ultimo aggiornamento: 18 giugno 2026",
+pp_lead:"Volto è costruita per rispettare la tua privacy. L’app non ha account e non raccoglie, non conserva sui nostri server e non vende i tuoi dati personali.",
+pp_loc_t:"Posizione",pp_loc_d:"Se lo consenti, la tua posizione viene usata sul dispositivo per mostrare le stazioni vicine, le distanze e avviare la navigazione. Non ci viene inviata, non è condivisa e non è mai usata per pubblicità o tracciamento. Puoi usare l’app anche senza posizione.",
+pp_data_t:"Dati sul tuo dispositivo",pp_data_d:"Le tue impostazioni — tema, lingua, app di navigazione predefinita, profilo auto e ricerche recenti — sono salvate solo sul tuo dispositivo. Non vengono caricate.",
+pp_third_t:"Fonti dati di terze parti",pp_third_d:"Le informazioni sulle stazioni provengono da Open Charge Map e Apple Maps. Toccando «Naviga», la destinazione viene passata all’app di mappe scelta (Apple Maps, Google Maps o Waze), che applica le proprie condizioni.",
+pp_purch_t:"Donazioni",pp_purch_d:"Le mance facoltative passano per gli acquisti in-app di Apple. I pagamenti sono gestiti interamente da Apple; non vediamo mai i tuoi dati di pagamento. Sono volontarie e non sbloccano funzioni.",
+pp_track_t:"Nessun tracciamento",pp_track_d:"Volto non contiene SDK pubblicitari, di analisi o di tracciamento di terze parti.",
+pp_changes_t:"Modifiche",pp_changes_d:"Possiamo aggiornare questa informativa con l’evolversi dell’app. La data sopra indica l’ultima versione.",
+pp_contact_t:"Contatto",pp_contact_d:"Domande sulla privacy? Scrivici a",
+tos_h1:"Termini d’uso",tos_updated:"Ultimo aggiornamento: 18 giugno 2026",
+tos_lead:"Scaricando o usando Volto accetti questi termini. Se non sei d’accordo, non usare l’app.",
+tos_service_t:"Il servizio",tos_service_d:"Volto ti aiuta a trovare stazioni di ricarica su una mappa e passa la navigazione ad altre app. I dati di ricarica sono forniti da terze parti (Open Charge Map e Apple Maps).",
+tos_accuracy_t:"Nessuna garanzia di accuratezza",tos_accuracy_d:"Posizioni, disponibilità, connettori, potenza e prezzi possono essere incompleti, non aggiornati o errati. Verifica sempre sul posto. Volto è uno strumento informativo — usalo a tuo rischio e non come unica fonte.",
+tos_nav_t:"Navigazione",tos_nav_d:"La navigazione è eseguita da app di terze parti (Apple Maps, Google Maps, Waze) secondo i loro termini. Guida responsabilmente e rispetta le leggi — non usare l’app mentre guidi.",
+tos_donate_t:"Donazioni",tos_donate_d:"Le mance sono facoltative, gestite dagli acquisti in-app di Apple, e non sbloccano funzioni. In genere non sono rimborsabili, salvo dove richiesto dalla legge o dalle policy di Apple.",
+tos_use_t:"Uso accettabile",tos_use_d:"Usa Volto solo per scopi leciti e personali. Non tentare di interrompere, decompilare o usare in modo improprio l’app o le sue fonti dati.",
+tos_liab_t:"Responsabilità",tos_liab_d:"Volto è fornita «così com’è», senza garanzie. Nei limiti massimi consentiti dalla legge, non siamo responsabili per perdite o danni derivanti dall’uso dell’app o dall’affidamento ai suoi dati (ad esempio raggiungere una stazione non disponibile).",
+tos_changes_t:"Modifiche",tos_changes_d:"Possiamo aggiornare questi termini con l’evolversi dell’app. La data sopra indica l’ultima versione.",
+tos_contact_t:"Contatto",tos_contact_d:"Domande su questi termini? Scrivici a",
+sup_h1:"Supporto",sup_lead:"Ti serve una mano con Volto? Qui sotto trovi risposta alla maggior parte delle domande. Altrimenti scrivici.",
+q1:"Non vedo stazioni",a1:"Controlla la connessione internet e che la posizione sia consentita. Sposta o ingrandisci un po’ la mappa per caricare la zona. I dati provengono da Open Charge Map e Apple Maps e in alcune regioni possono essere scarsi.",
+q2:"La mappa non mi segue / nessuna posizione",a2:"Tocca il pulsante della posizione, oppure apri Impostazioni iOS → Volto → Posizione e consenti l’accesso. Senza posizione puoi comunque esplorare e cercare.",
+q3:"Come cambio lingua o tema?",a3:"Apri Impostazioni (icona ingranaggio) → Aspetto, Tema e Lingua. Lì puoi anche attivare o disattivare la vibrazione.",
+q4:"Cosa fa «Per la mia auto»?",a4:"Imposta i connettori della tua auto una volta in Impostazioni → La mia auto. Poi il pulsante «Per la mia auto» mostra solo stazioni compatibili e la scheda indica la compatibilità.",
+q5:"Devo donare?",a5:"No. Le mance sono del tutto facoltative e non bloccano mai funzioni — sostengono solo lo sviluppo. Grazie se lo fai!",
+sup_contact_t:"Contattaci",sup_contact_d:"Email"}
+};
+
+function pickLang(){const s=localStorage.getItem("volto_lang");if(s&&I18N[s])return s;const n=(navigator.language||"en").slice(0,2).toLowerCase();return I18N[n]?n:"en";}
+function applyLang(l){const d=I18N[l];document.documentElement.lang=l;localStorage.setItem("volto_lang",l);
+  document.querySelectorAll("[data-i18n]").forEach(function(e){const k=e.getAttribute("data-i18n");if(d[k]!=null)e.innerHTML=d[k];});
+  document.querySelectorAll(".lang-btn").forEach(function(b){b.classList.toggle("active",b.dataset.lang===l);});}
+function showView(v){document.querySelectorAll(".view").forEach(function(s){s.classList.toggle("active",s.id==="view-"+v);});
+  document.querySelectorAll(".links a[data-go]").forEach(function(a){a.classList.toggle("active",a.dataset.go===v);});
+  window.scrollTo(0,0);location.hash=v==="home"?"":v;}
+document.addEventListener("DOMContentLoaded",function(){
+  const host=document.getElementById("lang-switcher");
+  LANGS.forEach(function(l){const b=document.createElement("button");b.className="lang-btn";b.dataset.lang=l[0];b.textContent=l[1];b.onclick=function(){applyLang(l[0]);};host.appendChild(b);});
+  document.querySelectorAll("[data-go]").forEach(function(el){el.addEventListener("click",function(){showView(el.dataset.go);});});
+  applyLang(pickLang());
+  const h=(location.hash||"").replace("#","");showView(["privacy","terms","support"].includes(h)?h:"home");
+});
+</script>
+</body>
+</html>
